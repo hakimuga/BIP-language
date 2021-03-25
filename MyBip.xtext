@@ -1,0 +1,234 @@
+grammar org.xtext.verimag.mydsl.MyBip with org.eclipse.xtext.common.Terminals
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+generate myBip "http://www.xtext.org/verimag/mydsl/MyBip"
+
+
+Model:
+	annotation+=Annotation*
+	package+=Package*
+	
+	;
+
+Annotation:
+	'@' name=ID '(' aannotation_parameter+= Annotation_parameter  (',' aannotation_parameter+= Annotation_parameter )* ')'
+;
+
+
+Annotation_parameter:
+	     annotation_key=ID|
+         annotation_key=ID '=' annotation_value=ID |
+         annotation_key=ID '=' annotation_string_value=STRING
+	;
+
+Package:	
+	'package' name=ID
+	
+	 constdeclaration+=ConstDeclaration* 
+	 exterdatadeclaration+=ExternDataDeclaration* 
+	 exterfunctiondeclaration+=ExternFunctionDeclaration* 
+	 portdeclaration+=PorttDeclaration* 
+	 annotation+=Annotation*	 
+	 atom+=Atom*		
+	 connector+=Connector*
+	 compound+=Compound*	 
+	'end'
+	;
+
+Compound:
+		'compound' 'type'  coupound_name=ID '(' (signature+=Signature )? ')'
+		 compount_declaration+=Compount_Declaration*
+		 connector_declaration+=Connector_Declaration*
+		 priority_declaration+= Priority_Declaration* 
+		 export_DataDeclaration+=Export_DataDeclaration*
+		 export_PorttDeclaration+=Export_PorttDeclaration*		 
+		 
+		 'end'
+;
+
+Export_DataDeclaration:
+	'export' 'data' (some_type=ID|basictype=BasicType)   data_name=ID ('.' ID )*	(',' data_name1+=ID ('.' ID )* )*   (alias+=Alias)?
+;
+
+Export_PorttDeclaration:
+	'export' 'port'   port_name0=ID ('.' ID )*  (',' port_name1+=ID ('.' ID )* )*	(alias+=Alias)?
+;
+
+Connector_Declaration:
+		'connector' connector_type_name=ID  connector_name=ID  '(' (signature+=Signature )? ')' (',' connector_name2+=ID  '(' (signature+=Signature )? ')')*
+;
+
+Compount_Declaration:
+	    'component' atom_type_name=ID  atom_name=ID  '(' (signature+=Signature )? ')' (',' atom_name2+=ID  '(' (signature+=Signature )? ')')*
+
+;
+
+Connector:
+	'connector' 'type' connector_name=ID '(' (signature+=Signature )? ')'
+	 datadeclaration+=DataDeclaration* 
+	 portdeclaration+=PorttDeclaration* 
+	 define_port+= Port_Definition*
+	 connector_bahavior+=Connector_behavior*
+
+	 'end'	
+;
+
+Connector_behavior:
+		'on' set_of_port+=Set_of_port  ('provided'  (provided+=Provided)*  )?   ('up' '{'  ( actions1+=Actions)* '}')?  ('down' '{'  ( actions1+=Actions)* '}')? 
+;
+
+Set_of_port:
+	port_name0=ID  (set_of_port+=Set_of_port)?
+;
+
+Port_Definition:
+	'define' connector_port_expression+=Connector_port_expression
+;
+
+Connector_port_expression:
+	           connector_port_name=ID        ("'")?     (connector_port_expression+=Connector_port_expression)?| 
+	          '('  connector_port_expression+=Connector_port_expression ')'    ("'")?  
+;
+Atom:
+	'atom type' atom_name=ID '(' (signature+=Signature )? ')'
+	 datadeclaration+=DataDeclaration* 
+	 export_DataDeclaration+=Export_DataDeclaration*
+	 portdeclaration+=PorttDeclaration* 
+	 places_declaration+= Places_Declaration*
+	 transition_declaration+= Transition_Declaration* 
+	 priority_declaration+= Priority_Declaration* 
+	 'end'
+;
+
+Priority_Declaration:
+	'priority' priority_name=ID
+		 comparator+=Comparator* 
+		 	('provided'  (provided+=Provided)*)?
+		 	
+;
+
+Comparator:
+	 port_name0=ID ('.' ID )* (operator+=Operator port_name1+=ID ('.' ID )*)* |
+	'(' port_name0=ID (operator+=Operator port_name1+=ID)* ')'|
+	
+	 ('(')? (component_name0=ID ':') ((port_name0=ID ('.' ID )* (',' port_name1+=ID ('.' ID )*)*) | '*')
+	 (operator+=Operator  (component_name1+=ID ':') (port_name2+=ID ('.' ID )*  (',' port_name3+=ID ('.' ID )*)* | '*') )* 	(')')?
+;
+
+Transition_Declaration:
+	'initial' 'to' (place_name1=ID) (',' place_name2+=ID)* ('provided'  (provided+=Provided)*  )? ('do' '{'  ( actions1+=Actions)* '}')? |
+	'internal' 'from' place_name0=ID (',' place_name2+=ID)*  'to' place_name1=ID (','place_name2+=ID)* ('provided'   (provided+=Provided)*)?   ('do' '{'  ( actions1+=Actions)* '}')? |
+	'on' port_name=ID 'from' place_name0=ID (',' place_name2+=ID)*  'to' place_name1=ID (','place_name2+=ID)* ('provided'  (provided+=Provided)* )?  ('do' '{'  ( actions1+=Actions)* '}')? 
+;
+
+Provided:
+	//	('(')* (var_name=ID|vartupe=VarType) ('.' ID )*         (operator+=Operator)*  (vartype=VarType)             (')')*                                       ((logicoperator+=LogicOperator)* provided+=Provided )*  |
+		//('(')* (var_name=ID|vartupe=VarType) ('.' ID )*         (operator+=Operator)*  (var_name2+=ID|vartupe2+=VarType) ('.' ID )*      (')')*                   ((logicoperator+=LogicOperator)* provided+=Provided )*  |
+	    //('(')* (var_name=ID|vartupe=VarType) ('.' ID )*         (operator+=Operator)*  (var_name2+=ID|vartupe2+=VarType)'('(signature+=Signature )?  ')' (')')*   ((logicoperator+=LogicOperator)* provided+=Provided )*         	     
+  		('(')*   operation+=Operation_Arithmetic2 (')')* 
+
+;
+Operation_Arithmetic2:
+	(operator+=Operator)? ('(')? (var_name=ID|vartupe=VarType|call_opration=Call_Opration) ('.' ID )* (')')? ((operator+=Operator) (operator+=Operator)? operation+=Operation_Arithmetic2)? 
+;
+Call_Opration:
+	//(var_name0=ID|vartupe0=VarType)? ('(')? (var_name=ID|vartupe=VarType) ('.' ID )* ( ',' (call_opration+=Call_Opration) )? (')')?
+		   function_name   =ID '('(var_name=ID (',' ID)*)? ')'
+;
+
+
+
+Actions:
+	('(')*  (var_name=ID|vartupe=VarType) ('.' ID )*  '=' vartupe2=VarType (')')* ';'|
+	('(')*  (var_name=ID|vartupe=VarType) ('.' ID )*  '=' string_var_name=STRING (')')* ';'|
+	('(')*  (var_name=ID|vartupe=VarType) ('.' ID )*  '=' string_var_name1=ID ('.' ID )* (')')* ';'|	
+    ('(')*  (var_name=ID|vartupe=VarType) ('.' ID )*  '=' operation+=Operation_Arithmetic (')')* ';'|	
+	('(')*  (var_name=ID|vartupe=VarType) ('.' ID )*  '='  string_var_name1=ID '('(signature+=Signature )? ')' (')')* ';'|
+    ('(')*		   function_name   =ID '('(signature+=Signature )? ')' (')')* ';'
+;
+
+Operation_Arithmetic:
+	(operator+=Operator)? ('(')? (var_name=ID|vartupe=VarType) ('.' ID )* ('(')* (')')* (operator+=Operator (operator+=Operator)? operation+=Operation_Arithmetic)? 
+;
+
+
+ComplexID:
+	var_in=ID ('.' complexid+=ComplexID)?
+;
+Places_Declaration:
+	('places'|'place') place_name=ID (',' ID)*
+;
+
+
+
+
+DataDeclaration:
+	'data' basictype=BasicType name=ID  |
+	'data' some_type=ID name=ID |
+	'export' 'data' some_type=ID name=ID ('.' ID )*	(alias+=Alias)?|
+    'export' 'data' name=ID ('.' ID )*	(alias+=Alias)?
+;
+
+PorttDeclaration:
+	'port' name_type=ID name_i0=ID  '(' (signature+=Signature )? ')' (',' ID '(' (signature+=Signature)? ')')*	|
+	'port'   'type'   name_i0=ID  '(' (signature+=Signature )? ')' (',' ID '(' (signature+=Signature )?  ')')*	| 
+	'export' 'port'   port_type=ID  port_name=ID '(' (signature+=Signature )? ')' (',' ID '(' (signature+=Signature )?  ')')*	(alias+=Alias)?
+;
+
+Alias:
+	'as' ID
+;
+ExternFunctionDeclaration:
+    'extern function' (type=BasicType)? name=ID  ('(')? (  signature+=Signature )? (')')?
+;
+
+DoubleConstant:
+	typeName= INT '.' INT
+;
+Operator:
+		typeName=('='|'=='|'!='|'<'|'>'|'<='|'>='|'/'|'%'|'+'|'-'|'*'|'&'|'|'|'^'|'~'|'!') 
+;
+LogicOperator:
+		typeName=('&&'|'||'|'!') 
+;
+Signature:
+		               
+	string_value=STRING (structure +=Structure)? (',' signature+=Signature)? | 
+	name=ID ('.' ID )* (structure +=Structure)? (',' signature+=Signature)? | 
+	type=BasicType  (',' signature+=Signature)? | 
+	vartype=VarType  (',' signature+=Signature)? | 
+	type=BasicType name=ID  ('.' ID )* (',' signature+=Signature)? 
+;
+
+Structure:
+(operator+=Operator)?	(name=ID|vartype+=VarType) ('.' ID )*	(structure+=Structure)? | (operator+=Operator)? name=STRING 	(structure+=Structure)?
+	
+;
+ExternDataDeclaration:
+	'extern data type'  name=ID ('refine' data_name = ID)?
+;
+
+ConstDeclaration:
+	'const data' basictype=BasicType name=ID  '=' (vartype=VarType)
+;
+
+VarType:	
+
+	IntConstant | DoubleConstant
+;
+
+IntConstant:
+	value=INT
+;
+
+BasicType:
+	typeName=('clock'|'int'|'float'|'double'|'string'| 'bool') 
+;
+
+terminal INT returns ecore::EInt: ('0' ..'9')+; 
+
+terminal STRING :
+'"' ( '\\'  ./* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\'|'"') )* '"' 
+;
+
+terminal ID: 
+       ('^')?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*; 
