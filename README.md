@@ -1,2 +1,2 @@
 # BIP-language
-Xtext representation of BIP
+The BIP grammar written in Xtext
