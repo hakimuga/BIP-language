@@ -1,4 +1,4 @@
-# BIP-language
+# BIP-language-in-XTEXT
 The BIP grammar written in Xtext
 
 
